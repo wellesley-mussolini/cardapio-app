@@ -1,12 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
-import { MEAL_SLOT_LABELS, WEEK_DAY_LABELS } from '@/constants/mealLabels';
-import useMealPlanner, { WEEK_DAYS } from '@/hooks/useMealPlanner';
+import { MEAL_SLOT_LABELS, MEAL_SLOTS, WEEK_DAY_LABELS, WEEK_DAYS } from '@/constants/mealSchedule';
+import useMealPlanner from '@/hooks/useMealPlanner';
 import recipesMock from '@/mock/recipesMock';
 import type { MealSlot, Recipe, RecipePickerParams, WeekDay } from '@/types/meal';
-
-const MEAL_SLOTS: MealSlot[] = ['lunch', 'dinner'];
 
 function isWeekDay(value: string | undefined): value is WeekDay {
   return WEEK_DAYS.includes(value as WeekDay);
@@ -19,13 +17,15 @@ function isMealSlot(value: string | undefined): value is MealSlot {
 export default function useRecipePicker() {
   const { day, slot } = useLocalSearchParams<RecipePickerParams>();
   const { addRecipe } = useMealPlanner();
+  const recipeAlreadyChosenRef = useRef(false);
   const targetIsValid = isWeekDay(day) && isMealSlot(slot);
 
   const chooseRecipe = useCallback(
     (recipe: Recipe) => {
-      if (!isWeekDay(day) || !isMealSlot(slot)) {
+      if (recipeAlreadyChosenRef.current || !isWeekDay(day) || !isMealSlot(slot)) {
         return;
       }
+      recipeAlreadyChosenRef.current = true;
       addRecipe(day, slot, recipe);
       router.back();
     },

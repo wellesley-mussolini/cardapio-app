@@ -1,16 +1,7 @@
 import { createContext, use, useCallback, useMemo, useState } from 'react';
 
+import { WEEK_DAYS } from '@/constants/mealSchedule';
 import type { DayMealPlan, MealPlanner, MealSlot, Recipe, ShoppingItem, WeekDay } from '@/types/meal';
-
-export const WEEK_DAYS: WeekDay[] = [
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-];
 
 export const MealPlannerContext = createContext<MealPlanner | null>(null);
 

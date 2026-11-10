@@ -1,4 +1,10 @@
+import type { ReactNode } from 'react';
+
 import type { DayMealPlan, MealSlot, Recipe, ShoppingItem, WeekDay } from '@/types/meal';
+
+export type MealPlannerProviderProps = {
+  children: ReactNode;
+};
 
 export type DayCardProps = {
   dayPlan: DayMealPlan;
@@ -17,11 +23,16 @@ export type ShoppingItemRowProps = {
   onToggle: (itemKey: string) => void;
 };
 
+export type ShoppingSectionHeaderProps = {
+  title: string;
+};
+
+export type ShoppingProgressProps = {
+  purchasedCount: number;
+  totalCount: number;
+};
+
 export type RecipeOptionRowProps = {
   recipe: Recipe;
   onChoose: (recipe: Recipe) => void;
-};
-
-export type TabStackLayoutProps = {
-  segment: string;
 };

@@ -1,15 +1,19 @@
 import { Image } from 'expo-image';
 import { Pressable, Text, View } from 'react-native';
 
-import { colors } from '@/constants/colors';
+import useRecipeOptionRow from '@/hooks/useRecipeOptionRow';
+import useThemeColors from '@/hooks/useThemeColors';
 import type { RecipeOptionRowProps } from '@/types/components';
 
 export default function RecipeOptionRow({ recipe, onChoose }: RecipeOptionRowProps) {
+  const themeColors = useThemeColors();
+  const { accessibilityLabel, recipeDetails, chooseThisRecipe } = useRecipeOptionRow({ recipe, onChoose });
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${recipe.title}, ${recipe.prepTime} min`}
-      onPress={() => onChoose(recipe)}
+      accessibilityLabel={accessibilityLabel}
+      onPress={chooseThisRecipe}
       style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
@@ -17,7 +21,7 @@ export default function RecipeOptionRow({ recipe, onChoose }: RecipeOptionRowPro
         padding: 12,
         borderRadius: 14,
         borderCurve: 'continuous',
-        backgroundColor: pressed ? colors.imagePlaceholder : colors.cardBackground,
+        backgroundColor: pressed ? themeColors.imagePlaceholder : themeColors.cardBackground,
       })}>
       <Image
         source={{ uri: recipe.image }}
@@ -28,15 +32,15 @@ export default function RecipeOptionRow({ recipe, onChoose }: RecipeOptionRowPro
           height: 64,
           borderRadius: 10,
           borderCurve: 'continuous',
-          backgroundColor: colors.imagePlaceholder,
+          backgroundColor: themeColors.imagePlaceholder,
         }}
       />
       <View style={{ flex: 1, gap: 2 }}>
-        <Text numberOfLines={2} style={{ fontSize: 17, fontWeight: '600', color: colors.label }}>
+        <Text numberOfLines={2} style={{ fontSize: 17, fontWeight: '600', color: themeColors.label }}>
           {recipe.title}
         </Text>
-        <Text style={{ fontSize: 13, color: colors.secondaryLabel, fontVariant: ['tabular-nums'] }}>
-          {recipe.prepTime} min · {recipe.ingredients.length} ingredientes
+        <Text style={{ fontSize: 13, color: themeColors.secondaryLabel, fontVariant: ['tabular-nums'] }}>
+          {recipeDetails}
         </Text>
       </View>
     </Pressable>

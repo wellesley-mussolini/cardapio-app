@@ -3,18 +3,18 @@ import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { Pressable, Text, View } from 'react-native';
 
-import { colors } from '@/constants/colors';
-import { MEAL_SLOT_LABELS, WEEK_DAY_LABELS } from '@/constants/mealLabels';
+import useMealSlotRow from '@/hooks/useMealSlotRow';
+import useThemeColors from '@/hooks/useThemeColors';
 import type { MealSlotRowProps } from '@/types/components';
 
-export default function MealSlotRow({ dayPlan, slot, onRemoveRecipe }: MealSlotRowProps) {
-  const plannedRecipe = dayPlan[slot];
-  const slotLabel = MEAL_SLOT_LABELS[slot];
-  const dayLabel = WEEK_DAY_LABELS[dayPlan.day];
+export default function MealSlotRow(mealSlotRowProps: MealSlotRowProps) {
+  const themeColors = useThemeColors();
+  const { plannedRecipe, slotLabel, addRecipeLabel, removeRecipeLabel, recipePickerHref, removePlannedRecipe } =
+    useMealSlotRow(mealSlotRowProps);
 
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.secondaryLabel, textTransform: 'uppercase' }}>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: themeColors.secondaryLabel, textTransform: 'uppercase' }}>
         {slotLabel}
       </Text>
       {plannedRecipe ? (
@@ -28,22 +28,22 @@ export default function MealSlotRow({ dayPlan, slot, onRemoveRecipe }: MealSlotR
               height: 56,
               borderRadius: 10,
               borderCurve: 'continuous',
-              backgroundColor: colors.imagePlaceholder,
+              backgroundColor: themeColors.imagePlaceholder,
             }}
           />
           <View style={{ flex: 1, gap: 2 }}>
-            <Text numberOfLines={2} style={{ fontSize: 16, fontWeight: '600', color: colors.label }}>
+            <Text numberOfLines={2} style={{ fontSize: 16, fontWeight: '600', color: themeColors.label }}>
               {plannedRecipe.title}
             </Text>
-            <Text style={{ fontSize: 13, color: colors.secondaryLabel, fontVariant: ['tabular-nums'] }}>
+            <Text style={{ fontSize: 13, color: themeColors.secondaryLabel, fontVariant: ['tabular-nums'] }}>
               {plannedRecipe.prepTime} min
             </Text>
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Remover ${slotLabel.toLowerCase()} de ${dayLabel}`}
+            accessibilityLabel={removeRecipeLabel}
             hitSlop={8}
-            onPress={() => onRemoveRecipe(dayPlan.day, slot)}
+            onPress={removePlannedRecipe}
             style={({ pressed }) => ({
               width: 44,
               height: 44,
@@ -54,15 +54,15 @@ export default function MealSlotRow({ dayPlan, slot, onRemoveRecipe }: MealSlotR
             <SymbolView
               name={{ ios: 'trash', android: 'delete', web: 'delete' }}
               size={20}
-              tintColor={colors.destructive}
+              tintColor={themeColors.destructive}
             />
           </Pressable>
         </View>
       ) : (
-        <Link href={{ pathname: '/recipe-picker', params: { day: dayPlan.day, slot } }} asChild>
+        <Link href={recipePickerHref} asChild>
           <Pressable
             role="button"
-            accessibilityLabel={`Adicionar ${slotLabel.toLowerCase()} de ${dayLabel}`}
+            accessibilityLabel={addRecipeLabel}
             style={({ pressed }) => ({
               minHeight: 56,
               flexDirection: 'row',
@@ -73,11 +73,11 @@ export default function MealSlotRow({ dayPlan, slot, onRemoveRecipe }: MealSlotR
               borderCurve: 'continuous',
               borderWidth: 1,
               borderStyle: 'dashed',
-              borderColor: colors.separator,
+              borderColor: themeColors.separator,
               opacity: pressed ? 0.5 : 1,
             })}>
-            <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} size={16} tintColor={colors.tint} />
-            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.tint }}>Adicionar receita</Text>
+            <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} size={16} tintColor={themeColors.tint} />
+            <Text style={{ fontSize: 15, fontWeight: '600', color: themeColors.tint }}>Adicionar receita</Text>
           </Pressable>
         </Link>
       )}

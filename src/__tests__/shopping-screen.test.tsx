@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { type PropsWithChildren, useEffect } from 'react';
 
-import ShoppingScreen from '@/app/(tabs)/(index,shopping)/shopping';
+import ShoppingScreen from '@/app/(tabs)/(shopping)/shopping';
 import useMealPlanner from '@/hooks/useMealPlanner';
 import recipesMock from '@/mock/recipesMock';
 import MealPlannerProvider from '@/providers/MealPlannerProvider';
@@ -11,13 +11,13 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light', Medium: 'medium', Heavy: 'heavy' },
 }));
 
-const [frangoComLegumes, macarraoBolonhesa] = recipesMock;
+const [chickenWithVegetables, pastaBolognese] = recipesMock;
 
 function PlannedWeekSetup({ children }: PropsWithChildren) {
   const { addRecipe } = useMealPlanner();
   useEffect(() => {
-    addRecipe('monday', 'lunch', frangoComLegumes);
-    addRecipe('tuesday', 'dinner', macarraoBolonhesa);
+    addRecipe('monday', 'lunch', chickenWithVegetables);
+    addRecipe('tuesday', 'dinner', pastaBolognese);
   }, [addRecipe]);
   return children;
 }
@@ -46,20 +46,20 @@ describe('ShoppingScreen', () => {
 
   it('strikes through and dims an item after tapping it, and restores it on the second tap', async () => {
     await renderShoppingScreenWithPlannedWeek();
-    const cebolaRow = screen.getByRole('checkbox', { name: 'Cebola, 3 un' });
+    const onionRow = screen.getByRole('checkbox', { name: 'Cebola, 3 un' });
 
-    await fireEvent.press(cebolaRow);
+    await fireEvent.press(onionRow);
 
-    expect(cebolaRow).toBeChecked();
+    expect(onionRow).toBeChecked();
     expect(screen.getByText('Cebola')).toHaveStyle({ textDecorationLine: 'line-through' });
-    expect(cebolaRow).toHaveStyle({ opacity: 0.4 });
+    expect(onionRow).toHaveStyle({ opacity: 0.4 });
     expect(screen.getByText('1 de 7 comprados')).toBeOnTheScreen();
 
-    await fireEvent.press(cebolaRow);
+    await fireEvent.press(onionRow);
 
-    expect(cebolaRow).not.toBeChecked();
+    expect(onionRow).not.toBeChecked();
     expect(screen.getByText('Cebola')).not.toHaveStyle({ textDecorationLine: 'line-through' });
-    expect(cebolaRow).toHaveStyle({ opacity: 1 });
+    expect(onionRow).toHaveStyle({ opacity: 1 });
   });
 
   it('shows an empty state when no meal is planned', async () => {

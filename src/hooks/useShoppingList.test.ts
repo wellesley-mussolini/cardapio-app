@@ -71,4 +71,30 @@ describe('useShoppingList', () => {
     expect(result.current.purchasedCount).toBe(1);
     expect(result.current.totalCount).toBe(3);
   });
+
+  it('unticks an item whose total amount grew after it was bought', async () => {
+    const { result, rerender } = await renderHook(
+      ({ currentItems }: { currentItems: ShoppingItem[] }) => useShoppingList(currentItems),
+      { initialProps: { currentItems: shoppingItems } },
+    );
+    await act(() => result.current.toggleItem('ing_cebola:un'));
+
+    const itemsWithMoreOnion = shoppingItems.map((shoppingItem) =>
+      shoppingItem.key === 'ing_cebola:un' ? { ...shoppingItem, totalAmount: 3.5 } : shoppingItem,
+    );
+    await rerender({ currentItems: itemsWithMoreOnion });
+
+    expect(result.current.isChecked('ing_cebola:un')).toBe(false);
+    expect(result.current.purchasedCount).toBe(0);
+  });
+
+  it('keeps the purchase toggle working when the device rejects the haptic call', async () => {
+    jest.mocked(Haptics.impactAsync).mockImplementationOnce(() => Promise.reject(new Error('haptics unavailable')));
+    const { result } = await renderHook(() => useShoppingList(shoppingItems));
+
+    await act(() => result.current.toggleItem('ing_cebola:un'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(result.current.isChecked('ing_cebola:un')).toBe(true);
+  });
 });

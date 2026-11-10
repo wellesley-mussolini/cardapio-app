@@ -12,8 +12,24 @@ const AISLE_TITLES: Record<CategoryAisle, string> = {
   padaria: 'Padaria',
 };
 
+function createPurchaseMark(shoppingItem: ShoppingItem) {
+  return `${shoppingItem.key}@${shoppingItem.totalAmount}`;
+}
+
+function playPurchaseHaptic() {
+  if (process.env.EXPO_OS === 'web') {
+    return;
+  }
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+}
+
 export default function useShoppingList(shoppingItems: ShoppingItem[]) {
-  const [checkedItemKeys, setCheckedItemKeys] = useState<string[]>([]);
+  const [purchaseMarks, setPurchaseMarks] = useState<ReadonlySet<string>>(() => new Set());
+
+  const shoppingItemsByKey = useMemo(
+    () => new Map(shoppingItems.map((shoppingItem) => [shoppingItem.key, shoppingItem])),
+    [shoppingItems],
+  );
 
   const sections = useMemo<ShoppingSection[]>(
     () =>
@@ -25,20 +41,39 @@ export default function useShoppingList(shoppingItems: ShoppingItem[]) {
     [shoppingItems],
   );
 
-  const toggleItem = useCallback((itemKey: string) => {
-    if (process.env.EXPO_OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setCheckedItemKeys((currentCheckedKeys) =>
-      currentCheckedKeys.includes(itemKey)
-        ? currentCheckedKeys.filter((checkedKey) => checkedKey !== itemKey)
-        : [...currentCheckedKeys, itemKey],
-    );
-  }, []);
+  const toggleItem = useCallback(
+    (itemKey: string) => {
+      const shoppingItem = shoppingItemsByKey.get(itemKey);
+      if (!shoppingItem) {
+        return;
+      }
+      playPurchaseHaptic();
+      const purchaseMark = createPurchaseMark(shoppingItem);
+      setPurchaseMarks((currentPurchaseMarks) => {
+        const updatedPurchaseMarks = new Set(currentPurchaseMarks);
+        if (updatedPurchaseMarks.has(purchaseMark)) {
+          updatedPurchaseMarks.delete(purchaseMark);
+        } else {
+          updatedPurchaseMarks.add(purchaseMark);
+        }
+        return updatedPurchaseMarks;
+      });
+    },
+    [shoppingItemsByKey],
+  );
 
-  const isChecked = useCallback((itemKey: string) => checkedItemKeys.includes(itemKey), [checkedItemKeys]);
+  const isChecked = useCallback(
+    (itemKey: string) => {
+      const shoppingItem = shoppingItemsByKey.get(itemKey);
+      return shoppingItem ? purchaseMarks.has(createPurchaseMark(shoppingItem)) : false;
+    },
+    [shoppingItemsByKey, purchaseMarks],
+  );
 
-  const purchasedCount = shoppingItems.filter((shoppingItem) => checkedItemKeys.includes(shoppingItem.key)).length;
+  const purchasedCount = useMemo(
+    () => shoppingItems.filter((shoppingItem) => purchaseMarks.has(createPurchaseMark(shoppingItem))).length,
+    [shoppingItems, purchaseMarks],
+  );
 
   return { sections, isChecked, toggleItem, purchasedCount, totalCount: shoppingItems.length };
 }

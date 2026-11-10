@@ -1,8 +1,10 @@
 import { Stack } from 'expo-router';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { Pressable } from 'react-native';
 
-import PlannerScreen from '@/app/(tabs)/(index,shopping)/index';
+import PlannerScreen from '@/app/(tabs)/(index)/index';
 import RecipePickerScreen from '@/app/recipe-picker';
+import useRecipePicker from '@/hooks/useRecipePicker';
 import MealPlannerProvider from '@/providers/MealPlannerProvider';
 
 function TestRootLayout() {
@@ -10,6 +12,21 @@ function TestRootLayout() {
     <MealPlannerProvider>
       <Stack />
     </MealPlannerProvider>
+  );
+}
+
+function DoubleTapRecipePicker() {
+  const { recipes, chooseRecipe } = useRecipePicker();
+  const chooseFirstRecipeTwice = () => {
+    chooseRecipe(recipes[0]);
+    chooseRecipe(recipes[0]);
+  };
+  return (
+    <Pressable
+      role="button"
+      accessibilityLabel="Escolher a primeira receita duas vezes"
+      onPress={chooseFirstRecipeTwice}
+    />
   );
 }
 
@@ -59,6 +76,26 @@ describe('PlannerScreen', () => {
 
     expect(screen.queryByText('Omelete de legumes')).not.toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Adicionar jantar de Sexta' })).toBeOnTheScreen();
+  });
+
+  it('leaves the picker only once when a recipe is chosen twice before the screen updates', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const router = await renderRouter(
+      {
+        _layout: TestRootLayout,
+        index: PlannerScreen,
+        'recipe-picker': DoubleTapRecipePicker,
+      },
+      { initialUrl: '/' },
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Adicionar almoço de Segunda' }));
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Escolher a primeira receita duas vezes' }));
+
+    const loggedErrors = consoleErrorSpy.mock.calls.flat().map(String).join('\n');
+    expect(loggedErrors).not.toContain('GO_BACK');
+    expect(router).toHavePathname('/');
+    expect(screen.getByText('Frango grelhado com legumes')).toBeOnTheScreen();
   });
 
   it('refuses to plan a meal when the picker is opened with an invalid day or slot', async () => {

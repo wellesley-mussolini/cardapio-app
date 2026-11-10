@@ -5,13 +5,13 @@ import recipesMock from '@/mock/recipesMock';
 import MealPlannerProvider from '@/providers/MealPlannerProvider';
 import type { Recipe, ShoppingItem } from '@/types/meal';
 
-const [frangoComLegumes, macarraoBolonhesa] = recipesMock;
+const [chickenWithVegetables, pastaBolognese] = recipesMock;
 
 async function renderMealPlanner() {
   return renderHook(() => useMealPlanner(), { wrapper: MealPlannerProvider });
 }
 
-function findShoppingItem(
+function filterItemsByIngredient(
   aggregatedIngredients: ShoppingItem[],
   ingredientId: string,
 ) {
@@ -40,10 +40,10 @@ describe('useMealPlanner', () => {
   it('places a recipe only in the chosen day and meal slot', async () => {
     const { result } = await renderMealPlanner();
 
-    await act(() => result.current.addRecipe('wednesday', 'dinner', frangoComLegumes));
+    await act(() => result.current.addRecipe('wednesday', 'dinner', chickenWithVegetables));
 
     const wednesdayPlan = result.current.weekPlan.find((dayPlan) => dayPlan.day === 'wednesday');
-    expect(wednesdayPlan?.dinner?.id).toBe(frangoComLegumes.id);
+    expect(wednesdayPlan?.dinner?.id).toBe(chickenWithVegetables.id);
     expect(wednesdayPlan?.lunch).toBeNull();
     const plannedMealCount = result.current.weekPlan.filter(
       (dayPlan) => dayPlan.lunch !== null || dayPlan.dinner !== null,
@@ -55,59 +55,59 @@ describe('useMealPlanner', () => {
     const { result } = await renderMealPlanner();
 
     await act(() => {
-      result.current.addRecipe('monday', 'lunch', frangoComLegumes);
-      result.current.addRecipe('monday', 'dinner', macarraoBolonhesa);
+      result.current.addRecipe('monday', 'lunch', chickenWithVegetables);
+      result.current.addRecipe('monday', 'dinner', pastaBolognese);
     });
     await act(() => result.current.removeRecipe('monday', 'lunch'));
 
     const mondayPlan = result.current.weekPlan.find((dayPlan) => dayPlan.day === 'monday');
     expect(mondayPlan?.lunch).toBeNull();
-    expect(mondayPlan?.dinner?.id).toBe(macarraoBolonhesa.id);
+    expect(mondayPlan?.dinner?.id).toBe(pastaBolognese.id);
   });
 
   it('sums the amount of an ingredient shared by different planned recipes', async () => {
     const { result } = await renderMealPlanner();
 
     await act(() => {
-      result.current.addRecipe('monday', 'lunch', frangoComLegumes);
-      result.current.addRecipe('tuesday', 'dinner', macarraoBolonhesa);
+      result.current.addRecipe('monday', 'lunch', chickenWithVegetables);
+      result.current.addRecipe('tuesday', 'dinner', pastaBolognese);
     });
 
-    const cebolaItems = findShoppingItem(result.current.aggregatedIngredients, 'ing_cebola');
-    expect(cebolaItems).toHaveLength(1);
-    expect(cebolaItems[0]).toMatchObject({ name: 'Cebola', totalAmount: 3, unit: 'un', category: 'hortifruti' });
-    const azeiteItems = findShoppingItem(result.current.aggregatedIngredients, 'ing_azeite');
-    expect(azeiteItems[0].totalAmount).toBe(50);
+    const onionItems = filterItemsByIngredient(result.current.aggregatedIngredients, 'ing_cebola');
+    expect(onionItems).toHaveLength(1);
+    expect(onionItems[0]).toMatchObject({ name: 'Cebola', totalAmount: 3, unit: 'un', category: 'hortifruti' });
+    const oliveOilItems = filterItemsByIngredient(result.current.aggregatedIngredients, 'ing_azeite');
+    expect(oliveOilItems[0].totalAmount).toBe(50);
   });
 
   it('counts the ingredients again when the same recipe is planned twice', async () => {
     const { result } = await renderMealPlanner();
 
     await act(() => {
-      result.current.addRecipe('monday', 'lunch', frangoComLegumes);
-      result.current.addRecipe('friday', 'dinner', frangoComLegumes);
+      result.current.addRecipe('monday', 'lunch', chickenWithVegetables);
+      result.current.addRecipe('friday', 'dinner', chickenWithVegetables);
     });
 
-    const peitoFrangoItems = findShoppingItem(result.current.aggregatedIngredients, 'ing_peito_frango');
-    expect(peitoFrangoItems[0].totalAmount).toBe(1000);
+    const chickenBreastItems = filterItemsByIngredient(result.current.aggregatedIngredients, 'ing_peito_frango');
+    expect(chickenBreastItems[0].totalAmount).toBe(1000);
   });
 
   it('drops the ingredients of a removed recipe from the aggregation', async () => {
     const { result } = await renderMealPlanner();
 
     await act(() => {
-      result.current.addRecipe('monday', 'lunch', frangoComLegumes);
-      result.current.addRecipe('tuesday', 'lunch', macarraoBolonhesa);
+      result.current.addRecipe('monday', 'lunch', chickenWithVegetables);
+      result.current.addRecipe('tuesday', 'lunch', pastaBolognese);
     });
     await act(() => result.current.removeRecipe('tuesday', 'lunch'));
 
-    expect(findShoppingItem(result.current.aggregatedIngredients, 'ing_carne_moida')).toEqual([]);
-    expect(findShoppingItem(result.current.aggregatedIngredients, 'ing_cebola')[0].totalAmount).toBe(1);
+    expect(filterItemsByIngredient(result.current.aggregatedIngredients, 'ing_carne_moida')).toEqual([]);
+    expect(filterItemsByIngredient(result.current.aggregatedIngredients, 'ing_cebola')[0].totalAmount).toBe(1);
   });
 
   it('keeps an ingredient listed in two different units as separate items', async () => {
     const { result } = await renderMealPlanner();
-    const receitaComCebolaEmGramas: Recipe = {
+    const caramelizedOnionInGrams: Recipe = {
       id: 'rec_cebola_gramas',
       title: 'Cebola caramelizada',
       prepTime: 30,
@@ -116,12 +116,12 @@ describe('useMealPlanner', () => {
     };
 
     await act(() => {
-      result.current.addRecipe('monday', 'lunch', frangoComLegumes);
-      result.current.addRecipe('monday', 'dinner', receitaComCebolaEmGramas);
+      result.current.addRecipe('monday', 'lunch', chickenWithVegetables);
+      result.current.addRecipe('monday', 'dinner', caramelizedOnionInGrams);
     });
 
-    const cebolaItems = findShoppingItem(result.current.aggregatedIngredients, 'ing_cebola');
-    expect(cebolaItems.map((shoppingItem) => [shoppingItem.totalAmount, shoppingItem.unit])).toEqual([
+    const onionItems = filterItemsByIngredient(result.current.aggregatedIngredients, 'ing_cebola');
+    expect(onionItems.map((shoppingItem) => [shoppingItem.totalAmount, shoppingItem.unit])).toEqual([
       [1, 'un'],
       [200, 'g'],
     ]);
