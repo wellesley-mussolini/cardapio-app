@@ -1,18 +1,31 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import MealPlannerProvider from '@/providers/MealPlannerProvider';
 
-SplashScreen.preventAutoHideAsync();
+export const unstable_settings = {
+  initialRouteName: '(tabs)',
+};
 
-export default function TabLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+      <MealPlannerProvider>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="recipe-picker"
+            options={{
+              presentation: 'formSheet',
+              headerShown: false,
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [0.7, 1],
+            }}
+          />
+        </Stack>
+      </MealPlannerProvider>
     </ThemeProvider>
   );
 }

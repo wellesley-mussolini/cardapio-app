@@ -39,3 +39,19 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Strict Codebase Rules
+1. **No Code Comments:** Do not include explanatory or unnecessary comments inside code files unless explicitly requested.
+2. **Export Default:** Always use `export default` for screen components and primary reusable components.
+3. **Hook-First Principle:** All business logic, complex local states, and event handlers MUST be extracted into custom hooks (`use*.ts`).
+4. **No Types in Components:** Type definitions (`interfaces`, `types`) must live in separate files (`types/` or module type files). Component structure must be 100% clean and focused solely on rendering.
+5. **Performance Optimization:** Rules and functions passed to child components should be wrapped with `useCallback` or `useMemo` when appropriate.
+6. **Language:** Always write code in English.
+
+## Expo Skills & Reference Guides
+Always follow official Expo skills standards:
+- `expo-router`: Directory-based routes (`app/`), `Stack`, `Tabs`, `Link`, modal sheets.
+- `expo-native-ui`: Responsive layouts, Apple HIG, native controls, visual effects.
+- `expo-animation`: Using `react-native-reanimated`, `react-native-gesture-handler`, and `expo-haptics`.
+- `expo-ui`: Use `@expo/ui` for native pickers, switches, and bottom sheets whenever available.
+- `expo-project-structure`: Project folder organization.
